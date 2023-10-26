@@ -1,0 +1,101 @@
+# Maintainer iFlygo <iflygo at outlook dot com>
+# Maintainer: q234 rty <q23456yuiop at gmail dot com>
+# Contributor: Brett Cornwall <ainola@archlinux.org>
+# Contributor: Maxim Baz <$pkgname at maximbaz dot com>
+# Contributor: Alexander F. Rødseth <xyproto@archlinux.org>
+
+pkgname=sway-im-git
+_pkgname=sway
+pkgver=r7192.47263aca289a
+pkgrel=1
+pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager (git version with input method popups)'
+arch=(x86_64)
+url='https://swaywm.org/'
+license=(MIT)
+depends=(
+	cairo
+	gdk-pixbuf2
+	glslang
+	json-c
+	libdisplay-info
+	libinput
+	libxcb
+	libxkbcommon
+	opengl-driver
+	pango
+	pcre
+	pixman
+	polkit
+	seatd
+	ttf-font
+	vulkan-icd-loader
+	vulkan-validation-layers
+	wayland
+	xcb-util-errors
+	xcb-util-renderutil
+	xcb-util-wm
+	xorg-xwayland
+)
+makedepends=(git meson scdoc wayland-protocols xorgproto vulkan-headers)
+backup=(etc/sway/config)
+optdepends=(
+	'dmenu: Application launcher'
+	'grim: Screenshot utility'
+	'i3status: Status line'
+	'mako: Lightweight notification daemon'
+	'slurp: Select a region'
+	'swayidle: Idle management daemon'
+	'swaylock: Screen locker'
+	'wallutils: Timed wallpapers'
+	'waybar: Highly customizable bar'
+	'xorg-xwayland: X11 support'
+)
+source=("sway::git+https://github.com/swaywm/sway.git"
+	"git+https://gitlab.freedesktop.org/wlroots/wlroots.git"
+	"50-systemd-user.conf"
+	"7226.patch")
+provides=("sway")
+conflicts=("sway")
+install=sway.install
+sha512sums=('SKIP'
+	'SKIP'
+	'c2b7d808f4231f318e03789015624fd4cf32b81434b15406570b4e144c0defc54e216d881447e6fd9fc18d7da608cccb61c32e0e1fab2f1fe2750acf812d3137'
+	'99cf50209022ae566a3e391d56ee6973a8a8b8657905d5306de71da275a0106653fbc40c5dc97ea43df5c71420d561c5bab6766080c37baa9cd38f7c1b61de1c')
+
+pkgver() {
+	cd "$_pkgname"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=12 HEAD)"
+}
+
+prepare() {
+	cd "$_pkgname"
+
+	# Set the version information to 'Arch Linux' instead of 'makepkg'
+	sed -i "s/branch \\\'@1@\\\'/Arch Linux/g" meson.build
+
+	patch -Np1 -i ../7226.patch
+}
+
+build() {
+	mkdir -p sway/subprojects
+	ln -sf ../../wlroots sway/subprojects/wlroots
+
+	arch-meson \
+		--buildtype release \
+		-D sd-bus-provider=libsystemd \
+		-D default_library=static \
+		-D werror=false \
+		sway build
+	meson compile -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C build
+	# Remove wlroots headers, static library, and pkgconfig file.
+	rm -rf "$pkgdir/usr/include" "$pkgdir/usr/lib"
+
+	install -Dm644 "$_pkgname/LICENSE" "$pkgdir/usr/share/licenses/$_pkgname/LICENSE"
+	install -Dm644 50-systemd-user.conf -t "$pkgdir/etc/sway/config.d/"
+}
+
+# vim: ts=2 sw=2 et
