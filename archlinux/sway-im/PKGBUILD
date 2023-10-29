@@ -7,7 +7,7 @@
 pkgname=sway-im
 pkgver=1.8.1
 epoch=1
-pkgrel=1
+pkgrel=2
 pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager, with input method popups v2 support'
 arch=(x86_64)
 url='https://swaywm.org/'
