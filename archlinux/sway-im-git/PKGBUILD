@@ -54,7 +54,10 @@ source=("sway::git+https://github.com/swaywm/sway.git"
 	"git+https://gitlab.freedesktop.org/wlroots/wlroots.git"
 	"50-systemd-user.conf"
 	"sway-portals.conf"
-	"7226.patch")
+	"7226.patch"
+  "0001-xwayland-support-HiDPI-scale.patch"
+  "0002-Fix-configure_notify-event.patch"
+  "0003-Fix-size-hints-under-Xwayland-scaling.patch")
 provides=("sway")
 conflicts=("sway")
 install=sway.install
@@ -62,7 +65,10 @@ sha512sums=('SKIP'
 	'SKIP'
 	'c2b7d808f4231f318e03789015624fd4cf32b81434b15406570b4e144c0defc54e216d881447e6fd9fc18d7da608cccb61c32e0e1fab2f1fe2750acf812d3137'
 	'ee361b0d091f574a6e5904256774947856779b5cddc87520e6c680f45a8c2b1896ae337dbd71a45eaad1cfc4224199369bff4f2847f70676898f9314d14d020b'
-	'99cf50209022ae566a3e391d56ee6973a8a8b8657905d5306de71da275a0106653fbc40c5dc97ea43df5c71420d561c5bab6766080c37baa9cd38f7c1b61de1c')
+	'99cf50209022ae566a3e391d56ee6973a8a8b8657905d5306de71da275a0106653fbc40c5dc97ea43df5c71420d561c5bab6766080c37baa9cd38f7c1b61de1c'
+  'ca05b46c8222e6982c848944ff2afe7765a2e76bb90e29c9d5b5dde9b51a0038bce8b0d52d01c390c970319ef10614ab1454a66940bf3a5b6193fc7f189afe6b'
+  '484c8a6848b1409a16403bf0c3e366bf5203716824c24e16efcdcdb71ff34c42b5da6e3da338fafea70ad80fcdd3d6e9f070fb809093d8b0b08ee0b2c95a4de4'
+  '8e3e77f6df204b6e5aa770be61fc8a6525e295cc8acdb0084ce66463e78f11702cf066640b20d7ff9560bdcdf7fa626db2e90651dcd42670250f45ac0f636854')
 
 pkgver() {
 	cd "$_pkgname"
@@ -76,6 +82,11 @@ prepare() {
 	sed -i "s/branch \\\'@1@\\\'/Arch Linux/g" meson.build
 
 	patch -Np1 -i ../7226.patch
+
+  cd "../wlroots"
+  patch -Np1 < ../0001-xwayland-support-HiDPI-scale.patch
+  patch -Np1 < ../0002-Fix-configure_notify-event.patch
+  patch -Np1 < ../0003-Fix-size-hints-under-Xwayland-scaling.patch
 }
 
 build() {
