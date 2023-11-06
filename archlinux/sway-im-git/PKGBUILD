@@ -84,6 +84,7 @@ prepare() {
 	patch -Np1 -i ../7226.patch
 
   cd "../wlroots"
+  git revert -n 18595000f3a21502fd60bf213122859cc348f9af 
   patch -Np1 < ../0001-xwayland-support-HiDPI-scale.patch
   patch -Np1 < ../0002-Fix-configure_notify-event.patch
   patch -Np1 < ../0003-Fix-size-hints-under-Xwayland-scaling.patch
