@@ -1,0 +1,25 @@
+pkgbase = pot-translation
+	pkgdesc = 一个跨平台的划词翻译软件
+	pkgver = 2.6.8
+	pkgrel = 1
+	url = https://github.com/colorsakura/pot-desktop
+	arch = x86_64
+	license = GPL3
+	makedepends = fnm
+	makedepends = rust
+	makedepends = dbus
+	depends = webkit2gtk
+	depends = gtk3
+	depends = libayatana-appindicator
+	depends = xdotool
+	depends = libxcb
+	depends = libxrandr
+	depends = tesseract
+	depends = tessdata
+	provides = pot-translation
+	conflicts = pot-translation-bin
+	conflicts = pot-translation-git
+	source = pot-desktop-2.6.8.tar.gz::https://github.com/colorsakura/pot-desktop/archive/refs/tags/2.6.8.tar.gz
+	sha512sums = c98306bdcdc090dc113be12de8dd8595383cd23122cd4f7bb92df04d1a5bf5c2f7be6ffa80fd40634ffaa2a493bf18018a3559ddfc197f2ed36f255d2ba757fe
+
+pkgname = pot-translation
