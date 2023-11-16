@@ -6,7 +6,7 @@
 
 pkgname=sway-im-git
 _pkgname=sway
-pkgver=r7192.47263aca289a
+pkgver=r7196.020a57020a57
 pkgrel=1
 pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager (git version with input method popups)'
 arch=(x86_64)
@@ -68,7 +68,7 @@ sha512sums=('SKIP'
 
 pkgver() {
 	cd "$_pkgname"
-	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=12 HEAD)"
+  printf "r%s.%s%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=6 HEAD)" "$(cd ../wlroots & git rev-parse --short=6 HEAD)"
 }
 
 prepare() {
