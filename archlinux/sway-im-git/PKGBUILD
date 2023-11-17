@@ -6,7 +6,7 @@
 
 pkgname=sway-im-git
 _pkgname=sway
-pkgver=r7196.020a57020a57
+pkgver=r7200.5c99b95c99b9
 pkgrel=1
 pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager (git version with input method popups)'
 arch=(x86_64)
@@ -29,7 +29,6 @@ depends=(
 	seatd
 	ttf-font
 	vulkan-icd-loader
-	vulkan-validation-layers
 	wayland
 	xcb-util-errors
 	xcb-util-renderutil
