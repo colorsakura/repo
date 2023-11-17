@@ -1,0 +1,139 @@
+# Maintainer: iFlygo <iflygo@outlook.com>
+
+pkgname='jbr21'
+_majorver=21
+_ver=21.0.1
+_jbver=293.3
+pkgrel=1
+pkgver=${_ver}.b${_jbver}
+_tag=jb${_ver}-b${_jbver}
+arch=('x86_64')
+url='https://github.com/JetBrains/JetBrainsRuntime'
+license=('custom')
+makedepends=('java-environment>=20' 'java-environment<=21' 'cpio' 'unzip' 'zip' 'libelf' 'libcups' 'libx11'
+             'libxrender' 'libxtst' 'libxt' 'libxext' 'libxrandr' 'alsa-lib' 'pandoc'
+             'graphviz' 'freetype2' 'libjpeg-turbo' 'giflib' 'libpng' 'lcms2'
+             'libnet' 'bash' 'harfbuzz' 'gcc-libs' 'glibc' 'git' 'wayland' 'wayland-protocols')
+options=(!lto)
+source=(git+${url}.git#tag=${_tag})
+sha256sums=('SKIP')
+
+case "${CARCH}" in
+  x86_64) _JARCH='x86_64';;
+  i686)   _JARCH='x86';;
+esac
+
+_jvmdir=/usr/lib/jvm/java-${_majorver}-jetbrains
+_jdkdir=JetBrainsRuntime
+_imgdir=${_jdkdir}/build/linux-${_JARCH}-server-release/images
+
+build() {
+
+  # build jcef
+  #cd $srcdir/jcef
+  #sed -i "s/4.46/5.4/g" tools/buildtools/download_from_google_storage.py
+  #mkdir jcef_build && cd jcef_build
+  #cmake -DCMAKE_BUILD_TYPE=Release ..
+  #make
+  #cd ../jb/tools/linux
+  #JDK_11=/usr/lib/jvm/$(ls /usr/lib/jvm | grep 11 | head -n 1) ./build.sh all
+
+  # build jbr
+  cd $srcdir/${_jdkdir}
+
+  NUM_PROC_OPT=''
+  MAKEFLAG_J=$(echo ${MAKEFLAGS} | sed -En 's/.*-j([0-9]+).*/\1/p')
+  if [ -n "${MAKEFLAG_J}" ]; then
+    # http://hg.openjdk.java.net/jdk10/jdk10/file/85e6cb013b98/make/InitSupport.gmk#l105
+    echo "Removing '-j${MAKEFLAG_J}' from MAKEFLAGS to prevent build fail. Passing it directly to ./configure."
+    export MAKEFLAGS=${MAKEFLAGS/-j${MAKEFLAG_J}/}
+    NUM_PROC_OPT="--with-num-cores=${MAKEFLAG_J}"
+  fi
+
+  # Avoid optimization of HotSpot being lowered from O3 to O2
+  local _CFLAGS="${CFLAGS//-O2/-O3} ${CPPFLAGS} -fcommon"
+  local _CXXFLAGS="${CXXFLAGS//-O2/-O3} ${CPPFLAGS} -fcommon"
+  local _LDFLAGS=${LDFLAGS}
+  if [[ ${CARCH} = i686 ]]; then
+    echo "Removing '-fno-plt' from CFLAGS and CXXFLAGS to prevent build fail with this architecture"
+    _CFLAGS=${CFLAGS/-fno-plt/}
+    _CXXFLAGS=${CXXFLAGS/-fno-plt/}
+  fi
+
+  _CFLAGS=${CFLAGS/-fexceptions/}
+  _CXXFLAGS=${CXXFLAGS/-fexceptions/}
+
+  # CFLAGS, CXXFLAGS and LDFLAGS are ignored as shown by a warning
+  # in the output of ./configure unless used like such:
+  #  --with-extra-cflags="${CFLAGS}"
+  #  --with-extra-cxxflags="${CXXFLAGS}"
+  #  --with-extra-ldflags="${LDFLAGS}"
+  # See also paragraph "Configure Control Variables from "jdk${_majorver}-${_hg_tag}/common/doc/building.md
+  unset CFLAGS
+  unset CXXFLAGS
+  unset LDFLAGS
+
+  VENDOR_NAME="JetBrains s.r.o."
+  JDK_BUILD_NUMBER=$(git log --simplify-by-decoration --decorate=short --pretty=short | grep "jdk-" | cut -d "(" -f2 | cut -d ")" -f1 | awk '{print $2}' | sort -t "-" -k 2 -g | tail -n 1 | tr -d "," | awk -F "-|[+]" '{print $3}')
+  VENDOR_VERSION_STRING="JBR-${_ver}+${JDK_BUILD_NUMBER}-${_jbver1}.${_jbver2}-jcef"
+
+  bash configure \
+    --with-vendor-name="$VENDOR_NAME" \
+    --with-vendor-version-string="$VENDOR_VERSION_STRING" \
+    --with-vendor-vm-bug-url=https://youtrack.jetbrains.com/issues/JBR \
+    --with-version-build="${JDK_BUILD_NUMBER}" \
+    --with-version-pre="" \
+    --with-stdc++lib=dynamic \
+    --with-extra-cflags="${_CFLAGS}" \
+    --with-extra-cxxflags="${_CXXFLAGS}" \
+    --with-extra-ldflags="${_LDFLAGS}" \
+    --with-libjpeg=system \
+    --with-giflib=system \
+    --with-libpng=system \
+    --with-lcms=system \
+    --with-zlib=system \
+    --with-harfbuzz=system \
+    --with-jvm-features=zgc \
+    --enable-unlimited-crypto \
+    --enable-warnings-as-errors=no \
+    ${NUM_PROC_OPT} \
+    #--disable-javac-server
+
+  make images
+}
+
+package() {
+  cd ${_imgdir}/jdk
+
+  install -dm 755 "${pkgdir}${_jvmdir}"
+
+  # Conf
+  install -dm 755 "${pkgdir}/etc"
+  cp -r conf "${pkgdir}/etc/${_pkgbase}"
+  ln -s /etc/${_pkgbase} "${pkgdir}/${_jvmdir}/conf"
+
+  # bin
+  install -D -m755 bin/{java,jfr,jrunscript} -t "${pkgdir}/${_jvmdir}/bin"
+  install -D -m755 bin/{keytool,rmiregistry} -t "${pkgdir}/${_jvmdir}/bin"
+
+  # libs
+  cp -a lib "${pkgdir}/${_jvmdir}"
+  rm "${pkgdir}/${_jvmdir}/lib/"{ct.sym,libattach.so,libsaproc.so}
+
+  # Legal
+  install -dm 755 "${pkgdir}/usr/share/licenses"
+  cp -r legal "${pkgdir}/usr/share/licenses/${_pkgbase}"
+  ln -s ${_pkgbase} "${pkgdir}/usr/share/licenses/${_pkgname}"
+  ln -s /usr/share/licenses/${_pkgbase} "${pkgdir}/${_jvmdir}/legal"
+
+  # man pages
+  # do not
+
+  install -D -m644 release -t "${pkgdir}/${_jvmdir}"
+
+  # Link JKS keystore from ca-certificates-utils
+  rm -f "${pkgdir}${_jvmdir}/lib/security/cacerts"
+  ln -sf /etc/ssl/certs/java/cacerts "${pkgdir}${_jvmdir}/lib/security/cacerts"
+}
+
+# vim: ts=2 sw=2 et:

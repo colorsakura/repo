@@ -23,7 +23,7 @@ depends=(
 	libxkbcommon
 	opengl-driver
 	pango
-	pcre
+	pcre2
 	pixman
 	polkit
 	seatd
