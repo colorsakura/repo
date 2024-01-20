@@ -6,7 +6,7 @@
 
 pkgname=sway-im-git
 _pkgname=sway
-pkgver=r7220.bf2b79fe6f38
+pkgver=r7269.ae33f40b090c
 pkgrel=1
 pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager (git version with input method popups)'
 arch=(x86_64)
@@ -52,7 +52,7 @@ source=("sway::git+https://github.com/swaywm/sway.git"
 	"git+https://gitlab.freedesktop.org/wlroots/wlroots.git"
 	"50-systemd-user.conf"
 	"sway-portals.conf"
-	"7226.patch"
+	"https://github.com/swaywm/sway/pull/7226.patch"
   "0001-xwayland-support-HiDPI-scale.patch"
 	"0002-Fix-configure_notify-event.patch"
   "0003-Fix-size-hints-under-Xwayland-scaling.patch")
@@ -63,7 +63,7 @@ sha512sums=('SKIP'
 	'SKIP'
 	'b7ec3bf297c72d8e0b38502f41baa73ffff8e9fae7e3b4ad874c7ac476283eb3a84060df496f436ce5a782a967ae7bc6e6dce65ea01b02e0ccd9f5b5b5b8f371'
 	'ee361b0d091f574a6e5904256774947856779b5cddc87520e6c680f45a8c2b1896ae337dbd71a45eaad1cfc4224199369bff4f2847f70676898f9314d14d020b'
-	'affc2bb0060ed060259114385f7f24d27c716eb8fc0d1f027fa96bbe1c468115683055931422b183e6fbba5f3ed77a13edb0efca8f95c4aff4cf1a9f2e265adb'
+	'SKIP'
   'ca05b46c8222e6982c848944ff2afe7765a2e76bb90e29c9d5b5dde9b51a0038bce8b0d52d01c390c970319ef10614ab1454a66940bf3a5b6193fc7f189afe6b'
 	'484c8a6848b1409a16403bf0c3e366bf5203716824c24e16efcdcdb71ff34c42b5da6e3da338fafea70ad80fcdd3d6e9f070fb809093d8b0b08ee0b2c95a4de4'
   '8e3e77f6df204b6e5aa770be61fc8a6525e295cc8acdb0084ce66463e78f11702cf066640b20d7ff9560bdcdf7fa626db2e90651dcd42670250f45ac0f636854')
@@ -85,6 +85,7 @@ prepare() {
   # sway im popups patch
 	patch -Np1 -i ../7226.patch
 
+  # wlroots hidpi patch
 	cd "../wlroots"
 	git revert -n 18595000f3a21502fd60bf213122859cc348f9af
   patch -Np1 <../0001-xwayland-support-HiDPI-scale.patch
