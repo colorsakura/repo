@@ -6,7 +6,7 @@
 
 pkgname=sway-im-git
 _pkgname=sway
-pkgver=r7269.ae33f40b090c
+pkgver=r14134.e39b0b4688a3
 pkgrel=1
 pkgdesc='Tiling Wayland compositor and replacement for the i3 window manager (git version with input method popups)'
 arch=(x86_64)
@@ -53,9 +53,9 @@ source=("sway::git+https://github.com/swaywm/sway.git"
 	"50-systemd-user.conf"
 	"sway-portals.conf"
 	"https://github.com/swaywm/sway/pull/7226.patch"
-  "0001-xwayland-support-HiDPI-scale.patch"
+	"0001-xwayland-support-HiDPI-scale.patch"
 	"0002-Fix-configure_notify-event.patch"
-  "0003-Fix-size-hints-under-Xwayland-scaling.patch")
+	"0003-Fix-size-hints-under-Xwayland-scaling.patch")
 provides=("sway")
 conflicts=("sway")
 install=sway.install
@@ -64,16 +64,19 @@ sha512sums=('SKIP'
 	'b7ec3bf297c72d8e0b38502f41baa73ffff8e9fae7e3b4ad874c7ac476283eb3a84060df496f436ce5a782a967ae7bc6e6dce65ea01b02e0ccd9f5b5b5b8f371'
 	'ee361b0d091f574a6e5904256774947856779b5cddc87520e6c680f45a8c2b1896ae337dbd71a45eaad1cfc4224199369bff4f2847f70676898f9314d14d020b'
 	'SKIP'
-  'ca05b46c8222e6982c848944ff2afe7765a2e76bb90e29c9d5b5dde9b51a0038bce8b0d52d01c390c970319ef10614ab1454a66940bf3a5b6193fc7f189afe6b'
+	'ca05b46c8222e6982c848944ff2afe7765a2e76bb90e29c9d5b5dde9b51a0038bce8b0d52d01c390c970319ef10614ab1454a66940bf3a5b6193fc7f189afe6b'
 	'484c8a6848b1409a16403bf0c3e366bf5203716824c24e16efcdcdb71ff34c42b5da6e3da338fafea70ad80fcdd3d6e9f070fb809093d8b0b08ee0b2c95a4de4'
-  '8e3e77f6df204b6e5aa770be61fc8a6525e295cc8acdb0084ce66463e78f11702cf066640b20d7ff9560bdcdf7fa626db2e90651dcd42670250f45ac0f636854')
+	'8e3e77f6df204b6e5aa770be61fc8a6525e295cc8acdb0084ce66463e78f11702cf066640b20d7ff9560bdcdf7fa626db2e90651dcd42670250f45ac0f636854')
 
 pkgver() {
 	cd "$_pkgname"
-	printf "r%s.%s%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=6 HEAD)" "$(
-		cd ../wlroots &&
-			git rev-parse --short=6 HEAD
-	)"
+	_sway_rev=$(git rev-list --count HEAD)
+	_sway_short=$(git rev-parse --short=6 HEAD)
+	cd ../wlroots
+	_wlroots_rev=$(git rev-list --count HEAD)
+	_wlroots_short=$(git rev-parse --short=6 HEAD)
+	cd "../$_pkgname"
+	printf "r%s.%s%s" "$((_sway_rev + $_wlroots_rev))" "$_sway_short" "$_wlroots_short"
 }
 
 prepare() {
@@ -82,15 +85,14 @@ prepare() {
 	# Set the version information to 'Arch Linux' instead of 'makepkg'
 	sed -i "s/branch \\\'@1@\\\'/Arch Linux/g" meson.build
 
-  # sway im popups patch
+	# sway im popups patch
 	patch -Np1 -i ../7226.patch
 
-  # wlroots hidpi patch
+	# wlroots hidpi patch
 	cd "../wlroots"
-	git revert -n 18595000f3a21502fd60bf213122859cc348f9af
-  patch -Np1 <../0001-xwayland-support-HiDPI-scale.patch
+	patch -Np1 <../0001-xwayland-support-HiDPI-scale.patch
 	patch -Np1 <../0002-Fix-configure_notify-event.patch
-  patch -Np1 <../0003-Fix-size-hints-under-Xwayland-scaling.patch
+	patch -Np1 <../0003-Fix-size-hints-under-Xwayland-scaling.patch
 }
 
 build() {
