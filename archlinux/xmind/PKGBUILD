@@ -1,0 +1,31 @@
+# Maintainer: Xiang Chen <iflygo@outlook.com>
+# Maintainer: bacteriostat <dev dot bacteriostat at aleeas dot com>
+# Contributor: FabioLolix
+# Contributor: archplayer
+# Contributor: RemiliaForever <remilia AT koumakan DOT cc>
+# Contributor: Felix Yan <felixonmars@gmail.com>
+# Contributor: Christoph Drexler <chrdr at gmx dot at>
+# Contributor: Jelle van der Waa <jellevdwaa@gmail.com>
+
+pkgname=xmind
+_pkgver=24.01.09392-202401101753
+pkgver=${_pkgver//-/.}
+pkgrel=1
+pkgdesc="Brainstorming and Mind Mapping Software"
+arch=(x86_64)
+url="https://www.xmind.net"
+license=(unknown)
+depends=(gtk3 alsa-lib libxkbfile nss)
+install=xmind.install
+options=(!strip)
+source_x86_64=("https://dl3.xmind.net/Xmind-for-Linux-amd64bit-${_pkgver}.deb"
+  "xmind.sh")
+sha256sums_x86_64=('46c25328d706b763fa32fe1b44be3c746d85f3cbe81bdaf523c1103b165cb61a'
+  '42d6e0aca872f01b9d15e65762220a43c0c266cc6cc8a9238e9c4dc3a9959b04')
+
+package() {
+  bsdtar -xf ${srcdir}/data.tar.xz -C ${pkgdir}/
+  install -d "$pkgdir/usr/bin"
+
+  install -Dm755 "$pkgname".sh "$pkgdir"/usr/bin/xmind
+}
